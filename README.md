@@ -42,16 +42,20 @@ will be changed to Up and OpenShift will allow to access it again.
 
 ### Usage
 
-1. Deploy microservices with Fabric8 maven plugin:
+1. Build the project prior to deploying to Openshift
+
+  mvn clean install
+
+2. Deploy microservices with Fabric8 maven plugin:
 
     mvn clean fabric8:deploy -Popenshift
 
-2. Open OpenShift console and navigate to your project's overview page.
+3. Open OpenShift console and navigate to your project's overview page.
 
-3. Wait until both services are running.
+4. Wait until both services are running.
 
-4. Scale down `name-service` to `0` pod. Then the `hello-service` probe will start to fail and OpenShift will make this service unavailable from outside.
+5. Scale down `name-service` to `0` pod. Then the `hello-service` probe will start to fail and OpenShift will make this service unavailable from outside.
 
-5. If you'd try to call the `hello-service` route, you should get an HTTP error 503 service unavailable.
+6. If you'd try to call the `hello-service` route, you should get an HTTP error 503 service unavailable.
 
-6. Scale up `name-service` to 1 pod. Soon, you will see that the `hello-service` probe will start again and OpenShift will make this service available again.
+7. Scale up `name-service` to 1 pod. Soon, you will see that the `hello-service` probe will start again and OpenShift will make this service available again.
