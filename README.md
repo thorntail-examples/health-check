@@ -22,13 +22,17 @@ If `name-service` is alive, it will get as HTTP response the status `200` and th
 reported by the Wildfly Swarm health procedure will be `Up`
   
 ```
-if (isNameServiceUp()) {
-			return HealthStatus.named("name-service-check").up();
-}
+@Health
+public HealthStatus checkNameService() {
 
-return HealthStatus.named("name-service-check")
-    .withAttribute("name-service", "Name service doesn't function correctly")
-    .down();
+		if (isNameServiceUp()) {
+			return HealthStatus.named("name-service-check").up();
+		}
+
+		return HealthStatus.named("name-service-check")
+				.withAttribute("name-service", "Name service doesn't function correctly")
+				.down();
+}
 ```
   
 If now the `name-service` is down and unreachable, then the `hello-service` will be informed about this situation due to a regular heartbeat 
