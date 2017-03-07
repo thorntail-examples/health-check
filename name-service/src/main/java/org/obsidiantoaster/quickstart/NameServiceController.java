@@ -16,7 +16,10 @@
 
 package org.obsidiantoaster.quickstart;
 
+import java.util.Optional;
+
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -24,20 +27,21 @@ import javax.ws.rs.Produces;
 import org.wildfly.swarm.spi.runtime.annotations.ConfigurationValue;
 
 /**
- * @authorHeiko Braun
+ * @author Heiko Braun
  */
 @Path("/")
 @ApplicationScoped
 public class NameServiceController {
 
-	@ConfigurationValue("service.name.response-value")
-	private String name;
+	@Inject
+	@ConfigurationValue("service.name.greeting")
+	private Optional<String> name;
 
 	@GET
 	@Path("/")
 	@Produces("text/plain")
 	public String getName() {
-		return this.name;
+		return this.name.isPresent() ? this.name.get() : "Name not set";
 	}
 
 }

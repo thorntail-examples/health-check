@@ -16,16 +16,18 @@ package org.obsidiantoaster.quickstart;
  * limitations under the License.
  */
 
+import java.util.concurrent.TimeUnit;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.wildfly.swarm.health.Health;
 import org.wildfly.swarm.health.HealthStatus;
 
@@ -68,7 +70,12 @@ public class HelloServiceController {
 	}
 
 	private Response requestName() {
-		Client client = ClientBuilder.newClient();
+
+		Client client = new ResteasyClientBuilder()
+		                .establishConnectionTimeout(2, TimeUnit.SECONDS)
+		                .socketTimeout(2, TimeUnit.SECONDS)
+		                .build();
+
 		WebTarget target = client.target(NAME_SERVICE_URL);
 		return target.request(MediaType.MEDIA_TYPE_WILDCARD).get();
 	}
