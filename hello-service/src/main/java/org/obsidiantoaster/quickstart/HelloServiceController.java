@@ -16,20 +16,23 @@ package org.obsidiantoaster.quickstart;
  * limitations under the License.
  */
 
-import java.util.concurrent.TimeUnit;
+import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.logging.Logger;
 import org.wildfly.swarm.health.Health;
 import org.wildfly.swarm.health.HealthStatus;
+import org.wildfly.swarm.spi.runtime.annotations.ConfigurationValue;
 
 /**
  * @author Heiko Braun
@@ -38,7 +41,11 @@ import org.wildfly.swarm.health.HealthStatus;
 @ApplicationScoped
 public class HelloServiceController {
 
-	static final String NAME_SERVICE_URL = "http://name-service";
+	private static final Logger LOG = Logger.getLogger(HelloServiceController.class);
+
+	@Inject
+	@ConfigurationValue("service.name.address")
+	private Optional<String> nameServiceAddress;
 
 	@GET
 	@Path("/greeting")
@@ -48,7 +55,11 @@ public class HelloServiceController {
 	}
 
 	private String getName() {
-		return requestName().readEntity(String.class);
+		Optional<Response> response = requestName();
+		if(response.isPresent())
+			return response.get().readEntity(String.class);
+		else
+			return "Failure";
 	}
 
 
@@ -56,6 +67,7 @@ public class HelloServiceController {
 	@Path("/check")
 	@Health
 	public HealthStatus checkNameService() {
+
 		if (isNameServiceUp()) {
 			return HealthStatus.named("name-service-check").up();
 		}
@@ -66,18 +78,25 @@ public class HelloServiceController {
 	}
 
 	private boolean isNameServiceUp() {
-		return requestName().getStatus() == 200;
+		Optional<Response> response = requestName();
+		if(response.isPresent())
+			return response.get().getStatus() == 200;
+		else
+			return false;
 	}
 
-	private Response requestName() {
+	private Optional<Response> requestName() {
+		Optional response = Optional.empty();
 
-		Client client = new ResteasyClientBuilder()
-		                .establishConnectionTimeout(2, TimeUnit.SECONDS)
-		                .socketTimeout(2, TimeUnit.SECONDS)
-		                .build();
+		try {
+			Client client = ClientBuilder.newClient();
+			WebTarget target = client.target(nameServiceAddress.get());
+			response = Optional.of(target.request(MediaType.MEDIA_TYPE_WILDCARD).get());
+		} catch (Exception e) {
+			LOG.error("Failed to access name service: " + e.getMessage());
+		}
 
-		WebTarget target = client.target(NAME_SERVICE_URL);
-		return target.request(MediaType.MEDIA_TYPE_WILDCARD).get();
+		return response;
 	}
 
 

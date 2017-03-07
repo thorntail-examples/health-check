@@ -1,0 +1,3 @@
+service:
+  name:
+    address: http://name-service

@@ -18,11 +18,11 @@ import org.wildfly.swarm.arquillian.DefaultDeployment;
  */
 @RunWith(Arquillian.class)
 @DefaultDeployment
-public class JAXRSArquillianTest {
+public class NameServiceTest {
 
     @Test
     @RunAsClient
-    public void testResource() {
+    public void test_service_invocation() {
         Client client = ClientBuilder.newClient();
         WebTarget target = client.target("http://localhost:8080");
 
