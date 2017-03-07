@@ -45,24 +45,24 @@
 
 
   <dependencyManagement>
-     <dependencies>
-       <dependency>
-         <groupId>org.wildfly.swarm</groupId>
-         <artifactId>bom-all</artifactId>
-         <version>${version.wildfly.swarm}</version>
-         <type>pom</type>
-         <scope>import</scope>
-       </dependency>
+    <dependencies>
+      <dependency>
+        <groupId>org.wildfly.swarm</groupId>
+        <artifactId>bom-all</artifactId>
+        <version>${version.wildfly.swarm}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
 
-       <dependency>
-         <groupId>io.fabric8</groupId>
-         <artifactId>fabric8-project-bom-with-platform-deps</artifactId>
-         <version>${fabric8.version}</version>
-         <type>pom</type>
-         <scope>import</scope>
-       </dependency>
-     </dependencies>
-   </dependencyManagement>
+      <dependency>
+        <groupId>io.fabric8</groupId>
+        <artifactId>fabric8-project-bom-with-platform-deps</artifactId>
+        <version>${fabric8.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <build>
 
@@ -125,9 +125,16 @@
               </execution>
             </executions>
           </plugin>
-        </plugins>
-      </build>
-    </profile>
-  </profiles>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skipTests>true</skipTests>
+            </configuration>
+          </plugin>
+      </plugins>
+    </build>
+  </profile>
+</profiles>
 
-</project>
+    </project>
