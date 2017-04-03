@@ -1,5 +1,0 @@
-swarm:
-  logging: info
-service:
-  name:
-    greeting: World
