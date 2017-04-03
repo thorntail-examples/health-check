@@ -66,11 +66,15 @@ It should return the value `Hello, World!`.
 
 1. Build the project prior to deploying to Openshift
 
+  ```
   mvn clean install
+  ```
 
 2. Deploy microservices with Fabric8 maven plugin:
 
-    mvn clean fabric8:deploy -Popenshift
+  ```
+  mvn clean fabric8:deploy -Popenshift
+  ```
 
 3. Get the route url:
 
