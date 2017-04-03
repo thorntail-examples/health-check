@@ -1,50 +1,68 @@
-### Description
+# Introduction
 
-This QuickStart demonstrates the health check feature using two Wildfly Swarm microservices.
-The `name-service` exposes a REST endpoint which returns a name as a String when it is called while the `hello-service` exposes
-another REST endpoint which returns a hello message to the user.
+## Problem Setting
 
-Before to reply to the user it will call the `name-service` in order to get the name to be returned within the Hello World Message.
+When an application is deployed top of OpenShift/Kubernetes it is important to figure out if each container is available and able to serve incoming requests. By implementing the health-check pattern, it becomes possible to monitor the health of the container and whether it is able to  serve traffic
 
-To control if the `name-service` is still alive, the `hello-service` implements the Health Check procedure to verify the status of the service
+## Description
+
+The purpose of this use case is to demonstrate how the Kubernetes health checks work in order to control if a container is still alive (= liveness) and ready to serve (= readiness) the traffic for the application’s HTTP endpoints.
+
+To demonstrate this behavior, we will configure an HTTP endpoint which is used by Kubernetes to issue HTTP requests. If the container is still alive, as the Health HTTP endpoint is able to reply, the management platform will receive 200 as return code and then no further action is required.
+
+But, if the HTTP endpoint doesn’t return a response (JVM no longer running, thread blocked, etc), then the platform will kill the pod and recreate a new container to restart the application.
+
+As the pod will be down for a certain period of time, we will be able to show that the endpoint exposing the service is no longer available; in this case, an HTTP 503 response will be returned. The user gets this return code from the Kubernetes proxy; the management platform has detected that the endpoint used to check if the container is ready to serve the traffic can’t reply. By consequence, the IP address and port of the server exposing the service will be removed from the Kubernetes proxy.
+
+## Concepts & Architectural Patterns
+
+Health Check using Liveness (= process is alive, jvm started) and Readiness (= ready to serve traffic) probes
+
+# Build the project
+
+The project uses WildflySwarm to create and package the service.
+
+Execute the following maven command:
 
 ```
-	private boolean isNameServiceUp() {
-  		Optional<Response> response = requestName();
-  		if(response.isPresent())
-  			return response.get().getStatus() == 200;
-  		else
-  			return false;
-  }
+mvn clean install
 ```
 
-If `name-service` is alive, it will get as HTTP response the status `200` and the Health Status 
-reported by the Wildfly Swarm health procedure will be `Up`
-  
+# Launch and test
+
+1. Run the following command to start the maven goal of WildFly Swarm:
 ```
-@Health
-public HealthStatus checkNameService() {
-
-		if (isNameServiceUp()) {
-			return HealthStatus.named("name-service-check").up();
-		}
-
-		return HealthStatus.named("name-service-check")
-				.withAttribute("name-service", "Name service doesn't function correctly")
-				.down();
-}
+mvn wildfly-swarm:run
 ```
-  
-If now the `name-service` is down and unreachable, then the `hello-service` will be informed about this situation due to a regular heartbeat 
-and will become unhealthy as the Health Status reported is `DOWN`.
- 
-As Openshift probes the service to control its Health status, it will discover that the health status of the `hello-service` is now `DOWN`
-and will make it unavailable. So, every call issued to the `hello-service` through the Openshift service will receive a HTTP status 503 (service unavailable).
 
-When the `name-service` will be restored (example : new pod created) and that `hello-service` will discover that it is alive again, then its health check status
-will be changed to Up and OpenShift will allow to access it again.
+2. If the application launched without error, use the following command to access the REST endpoint exposed using curl or httpie tool:
 
-### Usage
+```
+http http://localhost:8080/api/greeting
+curl http://localhost:8080/api/greeting
+```
+
+It should return the value `Hello, World!`.
+
+# Openshift Online
+
+## Login and prepare your openshift account
+
+1. Go to [OpenShift Online](https://console.dev-preview-int.openshift.com/console/command-line) to get the token used by the oc client for authentication and project access.
+
+2. Using the `oc` client, execute the following command to replace MYTOKEN with the one from the Web Console:
+
+    ```
+    oc login https://api.dev-preview-int.openshift.com --token=MYTOKEN
+    ```
+3. To allow the WildFly Swarm application running as a pod to access the Kubernetes Api to retrieve the Config Map associated to the application name of the project `swarm-rest-configmap`,
+   the view role must be assigned to the default service account in the current project:
+
+    ```
+    oc policy add-role-to-user view -n $(oc project -q) -z default
+    ```      
+
+## Experimenting with service states and health checks in an Openshift environment
 
 1. Build the project prior to deploying to Openshift
 
@@ -54,12 +72,44 @@ will be changed to Up and OpenShift will allow to access it again.
 
     mvn clean fabric8:deploy -Popenshift
 
-3. Open OpenShift console and navigate to your project's overview page.
+3. Get the route url:
 
-4. Wait until both services are running.
+    ```
+    oc get route/wildfly-swarm-health
+    NAME              HOST/PORT                                          PATH      SERVICE                TERMINATION   LABELS
+    wildfly-swarm-health   <HOST_PORT_ADDRESS>             wildfly-swarm-health:8080
+    ```
 
-5. Scale down `name-service` to `0` pod. Then the `hello-service` probe will start to fail and OpenShift will make this service unavailable from outside.
+4. Use the Host or Port address to access the service.
 
-6. If you'd try to call the `hello-service` route, you should get an HTTP error 503 service unavailable.
+    ```
+    curl http://<HOST_PORT_ADDRESS>/api/greeting    
+    ```
 
-7. Scale up `name-service` to 1 pod. Soon, you will see that the `hello-service` probe will start again and OpenShift will make this service available again.
+    The service should respond with `Hello, World!`:
+
+    ```
+    {    
+    "content": "Hello, World!"
+	 }
+    ```
+
+5. Kill the service to simulate a failure state:
+
+  ```
+  curl http://<HOST_PORT_ADDRESS>/api/killme
+  ```
+
+  > Internally, this suspends the server, which means it will no longer accept HTTP requests, but respond with 503 across the board. But for the Openshift end, which does rely on HTTP probes to check the liveliness of the pod, this will signal an unhealthy state and the pod should be replaced with a new instance after a while.
+
+6. Verify the pod is gone
+
+  A subsequent request, shortly after the pod was killed, should return 503 on the route URL.
+
+  ```
+  curl http://<HOST_PORT_ADDRESS>/api/greeting    
+  ```
+
+7. If you move the Openshift console, you should be able to see the pod failover and new one being started after a while.
+
+Congratulations, you just finished your first health check tutorial!
