@@ -16,18 +16,17 @@
  */
 package org.obsidiantoaster.quickstart.health;
 
+import java.net.InetAddress;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
+import org.jboss.as.controller.client.ModelControllerClient;
+import org.jboss.dmr.ModelNode;
 
 @Path("/")
 public class GreetingController {
@@ -45,29 +44,28 @@ public class GreetingController {
     /**
      * The /killme operation is actually just going to suspend the server inbound traffic,
      * which leads to 503 when subsequent HTTP requests are received
-     * @return
      */
     @GET
     @Path("/killme")
     public Response killme() {
 
-        Client client = ClientBuilder.newClient();
-        Entity<String> operation = Entity.entity(
-                new String("{\"operation\":\"suspend\"}"),
-                MediaType.APPLICATION_JSON_TYPE);
+        try {
+            ModelNode op = new ModelNode();
+            op.get("address").setEmptyList();
+            op.get("operation").set("suspend");
 
-        WebTarget managementResource = client.target("http://localhost:9990/management");
-        String msg = managementResource.request(MediaType.APPLICATION_JSON_TYPE)
-                .header("Content-type", MediaType.APPLICATION_JSON)
-                .post(operation, String.class);
+            ModelControllerClient client = ModelControllerClient.Factory.create(InetAddress.getByName("localhost"), 9990);
+            ModelNode response = client.execute(op);
 
-        return Response.ok(msg).build();
+            if(response.has("failure-description")) {
+                throw new Exception(response.get("failure-description").asString());
+            }
+
+            return Response.ok(response.get("result").asString()).build();
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    @GET
-    @Path("/ping")
-    @Produces("text/plain")
-    public String ping() {
-        return "pong";
-    }
 }

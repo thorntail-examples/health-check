@@ -76,12 +76,18 @@
 
     <dependency>
       <groupId>org.wildfly.swarm</groupId>
-      <artifactId>management</artifactId>
+      <artifactId>monitor</artifactId>
     </dependency>
 
     <dependency>
       <groupId>org.wildfly.swarm</groupId>
       <artifactId>cdi</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.wildfly.core</groupId>
+      <artifactId>wildfly-controller-client</artifactId>
+      <version>3.0.0.Beta11</version>
     </dependency>
 
     <dependency>

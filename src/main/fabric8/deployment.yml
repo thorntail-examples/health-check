@@ -4,7 +4,7 @@ spec:
       containers:
         - readinessProbe:
             httpGet:
-              path: /api/ping
+              path: /health
               port: 8080
             initialDelaySeconds: 10
             failureThreshold: 3
