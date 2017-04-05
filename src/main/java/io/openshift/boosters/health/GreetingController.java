@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.obsidiantoaster.quickstart.health;
+package io.openshift.boosters.health;
 
 import java.net.InetAddress;
 import java.util.concurrent.atomic.AtomicLong;

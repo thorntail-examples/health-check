@@ -1,4 +1,4 @@
-package org.obsidiantoaster.quickstart.health;
+package io.openshift.boosters.health;
 
 import java.net.InetAddress;
 

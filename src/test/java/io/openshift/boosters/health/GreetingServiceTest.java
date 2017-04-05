@@ -1,4 +1,4 @@
-package org.obsidiantoaster.quickstart.health;
+package io.openshift.boosters.health;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;

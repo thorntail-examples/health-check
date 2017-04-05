@@ -1,4 +1,4 @@
-package org.obsidiantoaster.quickstart.health;
+package io.openshift.boosters.health;
 
 import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
