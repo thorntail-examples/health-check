@@ -1,21 +1,100 @@
 <html>
+
+<head>
+
+  <meta charset="utf-8">
+  <title>Health Check - WildFly Swarm</title>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+        integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+</head>
+
 <body>
 
-<h1>User Problem</h1>
+<div class="container">
 
-User would like to open up an endpoint to expose a business operation over remote boundaries.
+  <div>
+    <h1>Health Check - WildFly Swarm</h1>
+    <p class="lead">
+      The purpose of this mission is to demonstrate how the Kubernetes health checks work in order to determine
+      if a container is still alive (= liveness) and ready to serve (= readiness) the traffic for the
+      application’s HTTP endpoints. To demonstrate this behavior, the application configures a
+      <code>/health</code>
+      HTTP endpoint which is used by Kubernetes to issue HTTP requests. If the container is still alive, as the
+      Health HTTP endpoint is able to reply, the management platform will receive 200 as return code and then no
+      further action is required.
 
-<h1>Description</h1>
+      But, once you click the <code>kill me</code> button, the HTTP endpoint does not return a response, then
+      the platform will restart the pod. As the pod will be down for a certain period of time, this UI polls
+      periodically the service until it is restarted. During this amount of time, do NOT refresh the page, as it
+      won't be served until the application has been restarted.
+    </p>
 
-This Experience showcases a basic mapping of a business operation to a remote endpoint. By taking this approach, clients leverage the HTTP protocol as a transport mechanism to call upon services. Application engineers define their APIs using a broad interpretation of REST fundamentals, encouraging freedom in design and quick prototyping.
+    <h2>Using the greeting service</h2>
 
-As an application or service matures, this approach may not scale as desired to properly support clean API design or use cases involving database interactions. Any operations involving shared, mutable state will have to be integrated with an appropriate backing datastore; all requests here will be scoped only to the container servicing the request, and there is no guarantee that subsequent requests will be served by the same container.
+    <form class="form-inline">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" class="form-control" id="name" placeholder="World">
+      </div>
+      <button id="invoke" type="submit" class="btn btn-success">Invoke</button>
+      <button id="kill" type="submit" class="btn btn-danger">Kill Me</button>
+    </form>
 
-This is recommended as an introduction to the mechanics of opening a service to be called upon by remote processes.
+    <h3>Result:</h3>
+    <pre><code id="greeting-result">Invoke the service to see the result.</code></pre>
+  </div>
+</div>
 
-<h1>Resources Available</h1>
-<ul>
-  <li><a href="/api/greeting">Greeting API</a>
-</ul>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous"></script>
+
+<script>
+    var killTime;
+    var attempts;
+
+    function invokeService() {
+        var n = $("#name").val() || "World";
+        $.getJSON("/api/greeting?name=" + n, function (res) {
+            $("#greeting-result").html(JSON.stringify(res));
+        });
+    }
+
+    function invokeServiceandRetryUponFailures() {
+        var n = $("#name").val() || "World";
+        $.getJSON("/api/greeting?name=" + n, function (res) {
+            var rebirth = new Date();
+            var diff = (killTime.getTime() - rebirth.getTime()) / 1000;
+            var abs = Math.abs(diff);
+            $("#greeting-result").html(JSON.stringify(res) + " (the recovery took " + abs + " seconds)");
+        })
+            .fail(function () {
+                $("#greeting-result").html("[" + ++attempts + "] Service not available... Retrying in 2 seconds");
+                setTimeout(invokeServiceandRetryUponFailures, 2000);
+            });
+    }
+
+    $(document).ready(function() {
+        $("#invoke").click(function (e) {
+            invokeService();
+            e.preventDefault();
+        });
+
+        $("#kill").click(function (e) {
+            $.get( "/api/killme", function( data ) {
+                $("#greeting-result").html("The application has been killed...");
+                killTime = new Date();
+                attempts = 0;
+                setTimeout(invokeServiceandRetryUponFailures, 2000);
+            });
+            e.preventDefault();
+        });
+    });
+</script>
+
 </body>
+
 </html>
