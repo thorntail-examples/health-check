@@ -19,7 +19,6 @@ import static org.hamcrest.Matchers.containsString;
 /**
  * @author Heiko Braun
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class OpenshiftIT {
 
     private static final OpenShiftTestAssistant openshift = new OpenShiftTestAssistant();
@@ -50,7 +49,7 @@ public class OpenshiftIT {
     }
 
     @Test
-    public void test_A_ServiceInvocation() {
+    public void testServiceInvocation() {
         when()
                 .get("/greeting")
                 .then()
@@ -59,7 +58,13 @@ public class OpenshiftIT {
     }
 
     @Test
-    public void test_B_ServiceKilled() throws Exception {
+    public void testServiceKilledAndRestarted() throws Exception {
+        when()
+                .get("/greeting")
+                .then()
+                .assertThat().statusCode(200)
+                .assertThat().body(containsString("Hello, World!"));
+
         // suspend service
         when()
                 .get("/killme")
@@ -73,6 +78,15 @@ public class OpenshiftIT {
                 .get("/greeting")
                 .then()
                 .assertThat().statusCode(503);
+
+        await().atMost(2, TimeUnit.MINUTES).until(() -> {
+            try {
+                Response response = get("/greeting");
+                return response.getStatusCode() == 200;
+            } catch (Exception e) {
+                return false;
+            }
+        });
     }
 }
 
