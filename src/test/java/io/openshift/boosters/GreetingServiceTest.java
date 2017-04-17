@@ -1,4 +1,4 @@
-package io.openshift.boosters.health;
+package io.openshift.boosters;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;

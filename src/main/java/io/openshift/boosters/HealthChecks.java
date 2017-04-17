@@ -1,4 +1,4 @@
-package io.openshift.boosters.health;
+package io.openshift.boosters;
 
 import java.net.InetAddress;
 
@@ -32,15 +32,14 @@ public class HealthChecks {
             ModelControllerClient client = ModelControllerClient.Factory.create(InetAddress.getByName("localhost"), 9990);
             ModelNode response = client.execute(op);
 
-            if(response.has("failure-description")) {
+            if (response.has("failure-description")) {
                 throw new Exception(response.get("failure-description").asString());
             }
 
             boolean isRunning = response.get("result").asString().equals("RUNNING");
-            if(isRunning) {
+            if (isRunning) {
                 return HealthStatus.named("server-state").up();
-            }
-            else {
+            } else {
                 return HealthStatus.named("server-state").down();
             }
         } catch (Exception e) {
