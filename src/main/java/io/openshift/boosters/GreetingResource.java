@@ -47,13 +47,12 @@ public class GreetingResource {
     @GET
     @Path("/killme")
     public Response killme() {
+        ModelNode op = new ModelNode();
+        op.get("address").setEmptyList();
+        op.get("operation").set("suspend");
 
-        try {
-            ModelNode op = new ModelNode();
-            op.get("address").setEmptyList();
-            op.get("operation").set("suspend");
-
-            ModelControllerClient client = ModelControllerClient.Factory.create(InetAddress.getByName("localhost"), 9990);
+        try (ModelControllerClient client = ModelControllerClient.Factory.create(
+                InetAddress.getByName("localhost"), 9990)) {
             ModelNode response = client.execute(op);
 
             if (response.has("failure-description")) {

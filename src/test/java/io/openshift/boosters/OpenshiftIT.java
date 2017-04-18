@@ -1,5 +1,6 @@
 package io.openshift.boosters;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import com.jayway.restassured.RestAssured;
@@ -71,22 +72,22 @@ public class OpenshiftIT {
                 .then()
                 .assertThat().statusCode(200);
 
-        Thread.sleep(500);
+        awaitStatus(503, Duration.ofSeconds(30));
 
-        // verify it has been suspended
-        when()
-                .get("/greeting")
-                .then()
-                .assertThat().statusCode(503);
+        long begin = System.currentTimeMillis();
+        awaitStatus(200, Duration.ofMinutes(3));
+        long end = System.currentTimeMillis();
+        System.out.println("Failure recovered in " + (end - begin) + " ms");
+    }
 
-        await().atMost(2, TimeUnit.MINUTES).until(() -> {
+    private void awaitStatus(int status, Duration duration) {
+        await().atMost(duration.getSeconds(), TimeUnit.SECONDS).until(() -> {
             try {
                 Response response = get("/greeting");
-                return response.getStatusCode() == 200;
+                return response.getStatusCode() == status;
             } catch (Exception e) {
                 return false;
             }
         });
     }
 }
-
