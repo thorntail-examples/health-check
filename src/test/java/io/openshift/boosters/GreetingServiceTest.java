@@ -15,6 +15,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.MethodSorters;
 import org.wildfly.swarm.arquillian.DefaultDeployment;
 
+import java.time.Duration;
+import java.util.concurrent.TimeUnit;
+
+import static com.jayway.awaitility.Awaitility.await;
+
 /**
  * @author Heiko Braun
  */
@@ -39,24 +44,32 @@ public class GreetingServiceTest {
     @RunAsClient
     public void test_B_service_killed() throws Exception {
         Client client = ClientBuilder.newClient();
-        WebTarget killme = client.target("http://localhost:8080")
-                .path("api").path("killme");
+        try {
+            WebTarget killme = client.target("http://localhost:8080")
+                    .path("api").path("killme");
 
-        // suspend process
-        Response response = killme.request().get();
-        Assert.assertEquals(200, response.getStatus());
+            // suspend process
+            Response response = killme.request().get();
+            Assert.assertEquals(200, response.getStatus());
+        } finally {
+            client.close();
+        }
 
-        client.close();
-        Thread.sleep(150);
+        awaitStatus(503, Duration.ofSeconds(10));
+    }
 
-        client = ClientBuilder.newClient(); // new connection
+    private void awaitStatus(int status, Duration duration) {
+        await().atMost(duration.getSeconds(), TimeUnit.SECONDS).until(() -> {
+            Client client = ClientBuilder.newClient(); // new connection
+            try {
+                WebTarget greeting = client.target("http://localhost:8080")
+                        .path("api").path("greeting");
 
-        // verify that it yields 503
-        WebTarget greeting = client.target("http://localhost:8080")
-                       .path("api").path("greeting");
-
-
-        response = greeting.request().get();
-        Assert.assertEquals(503, response.getStatus());
+                Response response = greeting.request().get();
+                return response.getStatus() == status;
+            } finally {
+                client.close();
+            }
+        });
     }
 }

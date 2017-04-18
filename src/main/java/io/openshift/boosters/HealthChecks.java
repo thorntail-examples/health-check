@@ -23,13 +23,13 @@ public class HealthChecks {
     @Health
     @Path("/health")
     public HealthStatus check() {
-        try {
-            ModelNode op = new ModelNode();
-            op.get("address").setEmptyList();
-            op.get("operation").set("read-attribute");
-            op.get("name").set("suspend-state");
+        ModelNode op = new ModelNode();
+        op.get("address").setEmptyList();
+        op.get("operation").set("read-attribute");
+        op.get("name").set("suspend-state");
 
-            ModelControllerClient client = ModelControllerClient.Factory.create(InetAddress.getByName("localhost"), 9990);
+        try (ModelControllerClient client = ModelControllerClient.Factory.create(
+                InetAddress.getByName("localhost"), 9990)) {
             ModelNode response = client.execute(op);
 
             if (response.has("failure-description")) {
