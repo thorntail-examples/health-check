@@ -1,1 +1,1 @@
-http://openshiftio-appdev-docs-appdev-documentation.tsrv.devshift.net/mission-health-check-wf-swarm.html
+http://appdev.openshift.io/mission-health-check-wf-swarm.html
