@@ -1,1 +1,1 @@
-http://appdev.openshift.io/docs/mission-health-check-wf-swarm.html
+http://appdev-stage.openshift.io/docs/wf-swarm-runtime.html#mission-health-check-wf-swarm
