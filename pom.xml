@@ -29,7 +29,7 @@
   <packaging>war</packaging>
 
   <properties>
-    <version.wildfly.swarm>2017.4.0</version.wildfly.swarm>
+    <version.wildfly.swarm>2017.6.0</version.wildfly.swarm>
     <version.resteasy>3.0.19.Final</version.resteasy>
 
     <failOnMissingWebXml>false</failOnMissingWebXml>
