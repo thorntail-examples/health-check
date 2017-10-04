@@ -1,2 +1,7 @@
 name: WildFly Swarm - Health Checks
 description: Demonstrates Health Checks in Wildfly Swarm
+versions:
+  - id: community
+    name: 2017.9.5 (Community)
+  - id: redhat
+    name: 7.0.0.redhat-6 (RHOAR)
