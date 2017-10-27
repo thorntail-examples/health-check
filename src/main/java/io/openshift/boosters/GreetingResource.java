@@ -40,12 +40,12 @@ public class GreetingResource {
     }
 
     /**
-     * The /killme operation is actually just going to suspend the server inbound traffic,
+     * The /stop operation is actually just going to suspend the server inbound traffic,
      * which leads to 503 when subsequent HTTP requests are received
      */
     @GET
-    @Path("/killme")
-    public Response killme() {
+    @Path("/stop")
+    public Response stop() {
         ModelNode op = new ModelNode();
         op.get("address").setEmptyList();
         op.get("operation").set("suspend");

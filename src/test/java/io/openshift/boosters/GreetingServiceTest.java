@@ -58,11 +58,11 @@ public class GreetingServiceTest {
 
     @Test
     @RunAsClient
-    public void test_B_service_killed() throws Exception {
+    public void test_B_service_stopped() throws Exception {
         Client client = ClientBuilder.newClient();
         try {
             WebTarget killme = client.target("http://localhost:8080")
-                    .path("api").path("killme");
+                    .path("api").path("stop");
 
             // suspend process
             Response response = killme.request().get();
