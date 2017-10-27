@@ -65,7 +65,7 @@ public class OpenshiftIT {
     }
 
     @Test
-    public void testServiceKilledAndRestarted() throws Exception {
+    public void testServiceStoppedAndRestarted() throws Exception {
         when()
                 .get("/greeting")
                 .then()
@@ -74,7 +74,7 @@ public class OpenshiftIT {
 
         // suspend service
         when()
-                .get("/killme")
+                .get("/stop")
                 .then()
                 .assertThat().statusCode(200);
 
