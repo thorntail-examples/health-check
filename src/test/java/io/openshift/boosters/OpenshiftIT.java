@@ -39,7 +39,7 @@ import static org.hamcrest.Matchers.containsString;
 @RunWith(Arquillian.class)
 public class OpenshiftIT {
 
-    @RouteURL("wfswarm-health-check")
+    @RouteURL("${app.name}")
     private URL url;
 
     @Before
