@@ -34,7 +34,7 @@ import org.wildfly.swarm.arquillian.DefaultDeployment;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import static com.jayway.awaitility.Awaitility.await;
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Heiko Braun
