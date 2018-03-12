@@ -35,7 +35,6 @@
     <version.resteasy>3.0.19.Final</version.resteasy>
     <version.restassured>3.0.6</version.restassured>
     <version.awaitility>3.0.0</version.awaitility>
-    <failOnMissingWebXml>false</failOnMissingWebXml>
   </properties>
 
   <dependencyManagement>
@@ -83,13 +82,6 @@
     <dependency>
       <groupId>org.wildfly.swarm</groupId>
       <artifactId>arquillian</artifactId>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.jboss.arquillian.junit</groupId>
-      <artifactId>arquillian-junit-container</artifactId>
-      <version>1.1.12.Final</version>
       <scope>test</scope>
     </dependency>
 
