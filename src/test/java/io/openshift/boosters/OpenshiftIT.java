@@ -16,21 +16,21 @@
 
 package io.openshift.boosters;
 
-import java.net.URL;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.response.Response;
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
+import org.arquillian.cube.openshift.impl.enricher.AwaitRoute;
 import org.arquillian.cube.openshift.impl.enricher.RouteURL;
 import org.jboss.arquillian.junit.Arquillian;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static com.jayway.awaitility.Awaitility.await;
-import static com.jayway.restassured.RestAssured.get;
-import static com.jayway.restassured.RestAssured.when;
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.when;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.containsString;
 
 /**
@@ -39,27 +39,20 @@ import static org.hamcrest.Matchers.containsString;
 @RunWith(Arquillian.class)
 public class OpenshiftIT {
 
-    @RouteURL("${app.name}")
-    private URL url;
+    @RouteURL(value = "${app.name}", path = "/api")
+    @AwaitRoute(path = "/")
+    private String url;
 
     @Before
     public void setup() throws Exception {
-        await().atMost(5, TimeUnit.MINUTES).until(() -> {
-            try {
-                return get(url).getStatusCode() == 200;
-            } catch (Exception e) {
-                return false;
-            }
-        });
-
-        RestAssured.baseURI = url + "api";
+        RestAssured.baseURI = url;
     }
 
     @Test
     public void testServiceInvocation() {
         when()
                 .get("/greeting")
-                .then()
+        .then()
                 .assertThat().statusCode(200)
                 .assertThat().body(containsString("Hello, World!"));
     }
@@ -68,14 +61,14 @@ public class OpenshiftIT {
     public void testServiceStoppedAndRestarted() throws Exception {
         when()
                 .get("/greeting")
-                .then()
+        .then()
                 .assertThat().statusCode(200)
                 .assertThat().body(containsString("Hello, World!"));
 
         // suspend service
         when()
                 .get("/stop")
-                .then()
+        .then()
                 .assertThat().statusCode(200);
 
         awaitStatus(503, Duration.ofSeconds(30));
