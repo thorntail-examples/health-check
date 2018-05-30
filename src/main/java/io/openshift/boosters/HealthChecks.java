@@ -16,29 +16,26 @@
 
 package io.openshift.boosters;
 
-import java.net.InetAddress;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-
+import org.eclipse.microprofile.health.Health;
+import org.eclipse.microprofile.health.HealthCheck;
+import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.dmr.ModelNode;
-import org.wildfly.swarm.health.Health;
-import org.wildfly.swarm.health.HealthStatus;
+
+import javax.enterprise.context.ApplicationScoped;
+import java.net.InetAddress;
 
 /**
- * A simple health check that verifies the server suspend state. It correspond to the /killme operation.
+ * A simple health check that verifies the server suspend state. It correspond to the /stop operation.
  *
  * @author Heiko Braun
  * @since 04/04/2017
  */
-@Path("/service")
-public class HealthChecks {
-
-    @GET
-    @Health
-    @Path("/health")
-    public HealthStatus check() {
+@Health
+@ApplicationScoped
+public class HealthChecks implements HealthCheck {
+    @Override
+    public HealthCheckResponse call() {
         ModelNode op = new ModelNode();
         op.get("address").setEmptyList();
         op.get("operation").set("read-attribute");
@@ -54,9 +51,9 @@ public class HealthChecks {
 
             boolean isRunning = response.get("result").asString().equals("RUNNING");
             if (isRunning) {
-                return HealthStatus.named("server-state").up();
+                return HealthCheckResponse.named("server-state").up().build();
             } else {
-                return HealthStatus.named("server-state").down();
+                return HealthCheckResponse.named("server-state").down().build();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
