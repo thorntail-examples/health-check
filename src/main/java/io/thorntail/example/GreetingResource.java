@@ -13,48 +13,48 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package io.thorntail.example;
 
-package io.openshift.boosters;
-
-import org.eclipse.microprofile.health.Health;
-import org.eclipse.microprofile.health.HealthCheck;
-import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.dmr.ModelNode;
 
-import javax.enterprise.context.ApplicationScoped;
-import java.net.InetAddress;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
 
-/**
- * A simple health check that verifies the server suspend state. It correspond to the /stop operation.
- *
- * @author Heiko Braun
- * @since 04/04/2017
- */
-@Health
-@ApplicationScoped
-public class HealthChecks implements HealthCheck {
-    @Override
-    public HealthCheckResponse call() {
+@Path("/")
+public class GreetingResource {
+    private static final String template = "Hello, %s!";
+
+    @GET
+    @Path("/greeting")
+    @Produces("application/json")
+    public Greeting greeting(@QueryParam("name") @DefaultValue("World") String name) {
+        return new Greeting(String.format(template, name));
+    }
+
+    /**
+     * The /stop operation is actually just going to suspend the server inbound traffic,
+     * which leads to 503 when subsequent HTTP requests are received
+     */
+    @GET
+    @Path("/stop")
+    public Response stop() {
         ModelNode op = new ModelNode();
         op.get("address").setEmptyList();
-        op.get("operation").set("read-attribute");
-        op.get("name").set("suspend-state");
+        op.get("operation").set("suspend");
 
-        try (ModelControllerClient client = ModelControllerClient.Factory.create(
-                InetAddress.getByName("localhost"), 9990)) {
+        try (ModelControllerClient client = ModelControllerClient.Factory.create("localhost", 9990)) {
             ModelNode response = client.execute(op);
 
             if (response.has("failure-description")) {
                 throw new Exception(response.get("failure-description").asString());
             }
 
-            boolean isRunning = response.get("result").asString().equals("RUNNING");
-            if (isRunning) {
-                return HealthCheckResponse.named("server-state").up().build();
-            } else {
-                return HealthCheckResponse.named("server-state").down().build();
-            }
+            return Response.ok(response.get("result").asString()).build();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

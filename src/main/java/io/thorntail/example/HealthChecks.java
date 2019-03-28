@@ -13,56 +13,44 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
-package io.openshift.boosters;
+package io.thorntail.example;
 
-import java.net.InetAddress;
-
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
-
+import org.eclipse.microprofile.health.Health;
+import org.eclipse.microprofile.health.HealthCheck;
+import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.jboss.as.controller.client.ModelControllerClient;
 import org.jboss.dmr.ModelNode;
 
-@Path("/")
-public class GreetingResource {
+import javax.enterprise.context.ApplicationScoped;
 
-    private static final String template = "Hello, %s!";
-
-    @GET
-    @Path("/greeting")
-    @Produces("application/json")
-    public Greeting greeting(@QueryParam("name") String name) {
-        String suffix = name != null ? name : "World";
-        return new Greeting(String.format(template, suffix));
-    }
-
-    /**
-     * The /stop operation is actually just going to suspend the server inbound traffic,
-     * which leads to 503 when subsequent HTTP requests are received
-     */
-    @GET
-    @Path("/stop")
-    public Response stop() {
+/**
+ * A simple health check that verifies the server suspend state. It corresponds to the /stop operation.
+ */
+@Health
+@ApplicationScoped
+public class HealthChecks implements HealthCheck {
+    @Override
+    public HealthCheckResponse call() {
         ModelNode op = new ModelNode();
         op.get("address").setEmptyList();
-        op.get("operation").set("suspend");
+        op.get("operation").set("read-attribute");
+        op.get("name").set("suspend-state");
 
-        try (ModelControllerClient client = ModelControllerClient.Factory.create(
-                InetAddress.getByName("localhost"), 9990)) {
+        try (ModelControllerClient client = ModelControllerClient.Factory.create("localhost", 9990)) {
             ModelNode response = client.execute(op);
 
             if (response.has("failure-description")) {
                 throw new Exception(response.get("failure-description").asString());
             }
 
-            return Response.ok(response.get("result").asString()).build();
-
+            boolean isRunning = response.get("result").asString().equals("RUNNING");
+            if (isRunning) {
+                return HealthCheckResponse.named("server-state").up().build();
+            } else {
+                return HealthCheckResponse.named("server-state").down().build();
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-
 }

@@ -13,63 +13,55 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package io.thorntail.example;
 
-package io.openshift.boosters;
+import org.arquillian.cube.openshift.impl.enricher.AwaitRoute;
+import org.arquillian.cube.openshift.impl.enricher.RouteURL;
+import org.jboss.arquillian.junit.Arquillian;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import io.restassured.RestAssured;
-import io.restassured.response.Response;
-import org.arquillian.cube.openshift.impl.enricher.AwaitRoute;
-import org.arquillian.cube.openshift.impl.enricher.RouteURL;
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.when;
+import static io.restassured.RestAssured.given;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.containsString;
 
-/**
- * @author Heiko Braun
- */
 @RunWith(Arquillian.class)
 public class OpenshiftIT {
-
     @RouteURL(value = "${app.name}", path = "/api")
     @AwaitRoute(path = "/")
     private String url;
 
-    @Before
-    public void setup() throws Exception {
-        RestAssured.baseURI = url;
+    @Test
+    public void serviceInvocation() {
+        given()
+                .baseUri(url)
+        .when()
+                .get("/greeting")
+        .then()
+                .statusCode(200)
+                .body(containsString("Hello, World!"));
     }
 
     @Test
-    public void testServiceInvocation() {
-        when()
+    public void serviceStoppedAndRestarted() {
+        given()
+                .baseUri(url)
+        .when()
                 .get("/greeting")
         .then()
-                .assertThat().statusCode(200)
-                .assertThat().body(containsString("Hello, World!"));
-    }
-
-    @Test
-    public void testServiceStoppedAndRestarted() throws Exception {
-        when()
-                .get("/greeting")
-        .then()
-                .assertThat().statusCode(200)
-                .assertThat().body(containsString("Hello, World!"));
+                .statusCode(200)
+                .body(containsString("Hello, World!"));
 
         // suspend service
-        when()
+        given()
+                .baseUri(url)
+        .when()
                 .get("/stop")
         .then()
-                .assertThat().statusCode(200);
+                .statusCode(200);
 
         awaitStatus(503, Duration.ofSeconds(30));
 
@@ -79,11 +71,17 @@ public class OpenshiftIT {
         System.out.println("Failure recovered in " + (end - begin) + " ms");
     }
 
-    private void awaitStatus(int status, Duration duration) {
+    private void awaitStatus(int expectedStatus, Duration duration) {
         await().atMost(duration.getSeconds(), TimeUnit.SECONDS).until(() -> {
             try {
-                Response response = get("/greeting");
-                return response.getStatusCode() == status;
+                int statusCode =
+                        given()
+                                .baseUri(url)
+                        .when()
+                                .get("/greeting")
+                        .then()
+                                .extract().statusCode();
+                return statusCode == expectedStatus;
             } catch (Exception e) {
                 return false;
             }

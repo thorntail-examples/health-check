@@ -13,17 +13,20 @@
  *  See the License for the specific language governing permissions and
  *  limitations under the License.
  */
+package io.thorntail.example;
 
-package io.openshift.boosters;
+public class Greeting {
+    private final String content;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
+    public Greeting() {
+        this.content = null;
+    }
 
-/**
- * Resource entry point
- */
-@ApplicationPath("/api")
-public class ApplicationConfig extends Application {
+    public Greeting(String content) {
+        this.content = content;
+    }
 
+    public String getContent() {
+        return content;
+    }
 }
-

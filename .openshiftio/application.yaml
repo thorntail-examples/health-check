@@ -2,11 +2,18 @@ apiVersion: v1
 kind: Template
 metadata:
   name: thorntail-health-check
+  annotations:
+    iconClass: icon-jboss
+    tags: thorntail, java, microservice
+    template.openshift.io/provider-display-name: "Red Hat, Inc."
+    template.openshift.io/documentation-url: "https://launcher.fabric8.io/docs/thorntail-runtime.html#mission-health-check-wf-swarm"
+    description: >-
+      The Health Check example shows how to monitor the health of an application, which includes if an application is available and whether it is able to service requests.
 parameters:
 - name: SOURCE_REPOSITORY_URL
   description: The source URL for the application
   displayName: Source URL
-  value: https://github.com/wildfly-swarm-openshiftio-boosters/wfswarm-health-check.git
+  value: https://github.com/thorntail-examples/health-check.git
   required: true
 - name: SOURCE_REPOSITORY_REF
   description: The branch name for the application
@@ -84,7 +91,7 @@ objects:
     labels:
       expose: "true"
       app: thorntail-health-check
-      group: io.openshift.boosters
+      group: io.thorntail.example
     name: thorntail-health-check
   spec:
     ports:
@@ -94,20 +101,20 @@ objects:
       targetPort: 8080
     selector:
       app: thorntail-health-check
-      group: io.openshift.boosters
+      group: io.thorntail.example
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
     labels:
       app: thorntail-health-check
-      group: io.openshift.boosters
+      group: io.thorntail.example
     name: thorntail-health-check
   spec:
     replicas: 1
     revisionHistoryLimit: 2
     selector:
       app: thorntail-health-check
-      group: io.openshift.boosters
+      group: io.thorntail.example
     strategy:
       rollingParams:
         timeoutSeconds: 3600
@@ -116,7 +123,7 @@ objects:
       metadata:
         labels:
           app: thorntail-health-check
-          group: io.openshift.boosters
+          group: io.thorntail.example
       spec:
         containers:
         - env:
@@ -174,7 +181,7 @@ objects:
   metadata:
     labels:
       app: thorntail-health-check
-      group: io.openshift.boosters
+      group: io.thorntail.example
     name: thorntail-health-check
   spec:
     port:
