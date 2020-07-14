@@ -47,7 +47,7 @@
     <version.restassured>4.3.1</version.restassured>
     <version.resteasy>3.11.2.Final</version.resteasy>
     <version.thorntail>2.7.0.Final</version.thorntail>
-    <version.wildfly-core>10.0.3.Final</version.wildfly-core>
+    <version.wildfly-core>12.0.3.Final</version.wildfly-core>
 
     <fabric8.generator.from>registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift:1.8</fabric8.generator.from>
   </properties>
