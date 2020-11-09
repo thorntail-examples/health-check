@@ -44,7 +44,7 @@
     <version.fabric8-maven-plugin>4.4.1</version.fabric8-maven-plugin>
     <version.maven-surefire-plugin>2.22.2</version.maven-surefire-plugin>
     <version.maven-war-plugin>3.3.1</version.maven-war-plugin>
-    <version.restassured>4.3.1</version.restassured>
+    <version.restassured>4.3.2</version.restassured>
     <version.resteasy>3.11.2.Final</version.resteasy>
     <version.thorntail>2.7.0.Final</version.thorntail>
     <version.wildfly-core>10.0.3.Final</version.wildfly-core>
