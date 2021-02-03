@@ -15,30 +15,35 @@
  */
 package io.thorntail.example;
 
-import org.arquillian.cube.openshift.impl.enricher.AwaitRoute;
-import org.arquillian.cube.openshift.impl.enricher.RouteURL;
-import org.jboss.arquillian.junit.Arquillian;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import io.restassured.RestAssured;
+import io.thorntail.openshift.test.OpenShiftTest;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.containsString;
 
-@RunWith(Arquillian.class)
+@OpenShiftTest
 public class OpenshiftIT {
-    @RouteURL(value = "${app.name}", path = "/api")
-    @AwaitRoute(path = "/")
-    private String url;
+    @BeforeAll
+    public static void setUp() {
+        RestAssured.basePath = "/api";
+    }
+
+    @BeforeEach
+    public void awaitEndpoint() {
+        awaitStatus(200, Duration.ofMinutes(1));
+    }
 
     @Test
     public void serviceInvocation() {
-        given()
-                .baseUri(url)
-        .when()
+        when()
                 .get("/greeting")
         .then()
                 .statusCode(200)
@@ -47,18 +52,14 @@ public class OpenshiftIT {
 
     @Test
     public void serviceStoppedAndRestarted() {
-        given()
-                .baseUri(url)
-        .when()
+        when()
                 .get("/greeting")
         .then()
                 .statusCode(200)
                 .body(containsString("Hello, World!"));
 
         // suspend service
-        given()
-                .baseUri(url)
-        .when()
+        when()
                 .get("/stop")
         .then()
                 .statusCode(200);
@@ -75,9 +76,7 @@ public class OpenshiftIT {
         await().atMost(duration.getSeconds(), TimeUnit.SECONDS).until(() -> {
             try {
                 int statusCode =
-                        given()
-                                .baseUri(url)
-                        .when()
+                        when()
                                 .get("/greeting")
                         .then()
                                 .extract().statusCode();
