@@ -1,0 +1,17 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: org.jboss.resteasy:resteasy-client
+    versions:
+    - "> 3.11.2.Final"
+  - dependency-name: org.jboss.resteasy:resteasy-client
+    versions:
+    - ">= 4.a, < 5"
+  - dependency-name: org.wildfly.core:wildfly-controller-client
+    versions:
+    - "> 10.0.3.Final"
